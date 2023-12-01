@@ -1,6 +1,3 @@
-#include "matplot/backend/opengl.h"
-#include "matplot/core/figure_type.h"
-#include "matplot/util/handle_types.h"
 #include <matplot/matplot.h>
 #include <numeric>
 #include <vector>
