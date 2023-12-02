@@ -140,20 +140,20 @@ maybe_target_pedantic_warnings(matplot)
 include(CheckSymbolExists)
 check_symbol_exists(__fbufsize "stdio_ext.h" HAVE_FBUFSIZE)
 if (HAVE_FBUFSIZE)
-    target_compile_definitions(matplot PRIVATE MATPLOT_HAS_FBUFSIZE)
+  target_compile_definitions(matplot PRIVATE MATPLOT_HAS_FBUFSIZE)
 endif()
 
 # Build for documentation
 if (MATPLOTPP_BUILD_FOR_DOCUMENTATION_IMAGES)
-    message("Building matplot for documentation images. wait() commands will be ignored. ~figure will save the files.")
-    target_compile_definitions(matplot PUBLIC MATPLOT_BUILD_FOR_DOCUMENTATION_IMAGES)
+  message("Building matplot for documentation images. wait() commands will be ignored. ~figure will save the files.")
+  target_compile_definitions(matplot PUBLIC MATPLOT_BUILD_FOR_DOCUMENTATION_IMAGES)
 endif ()
 
 # Include high-resolution world map in the binary
 if (MATPLOTPP_BUILD_HIGH_RESOLUTION_WORLD_MAP)
-    target_compile_definitions(matplot PUBLIC MATPLOT_BUILD_HIGH_RESOLUTION_WORLD_MAP)
+  target_compile_definitions(matplot PUBLIC MATPLOT_BUILD_HIGH_RESOLUTION_WORLD_MAP)
 else ()
-    message("Not including the high resolution maps for geoplots")
+  message("Not including the high resolution maps for geoplots")
 endif ()
 
 #######################################################
@@ -183,100 +183,83 @@ endif ()
 ### Experimental OpenGL backend                     ###
 #######################################################
 if (MATPLOTPP_BUILD_EXPERIMENTAL_OPENGL_BACKEND)
-    # Library for the OpenGL example
-    # This is an example of what an OpenGL backend *could* look like.
-    #     The opengl backend is currently incomplete.
-    # There are two backends for OpenGL:
-    #     - opengl_embed: you can put that inside your existing OpenGL
-    #       application. You can then call draw() in your render loop
-    #       to draw the plots on top of your application.
-    #     - opengl: this backend will create it's own window and make
-    #       plots there.
-    # Qt: If you're using Qt, opengl_embed allows you to create plots in your
-    #     application. See https://doc.qt.io/qt-5/qtgui-index.html
-    # Web: If you're creating plots for the web, you can use emscripten to
-    #     create efficient plots. See:
-    #     https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html
-    # We are continuously making plot categories compatible with these backends.
-    # For each category, we need to adapt the axes objects to feed this backend
-    #     with polygons and colors instead of commands.
-    # Feeding these commands is not a problem at all. The data is all prepared
-    #     in the axes objects. Unlike an gnuplot backend, we don't have to convert
-    #     this data to strings and do not have to worry about an external syntax.
-    # The biggest challenge is to actually create backends that can
-    #     draw these polygons we feed them.
-    # We discuss some of these difficulties in the documentation
-    #     and the backend_interface.h.
-    # The biggest pro of the OpenGL backend is that it is very efficient.
-    #     Everything is happening on the GPU.
-    # The biggest con of the OpenGL backend is that it cannot open a window
-    #     in another thread. All it can do is get in the middle of the render
-    #     loop and draw the plot.
-    find_package(OpenGL)
+  # Library for the OpenGL example
+  # This is an example of what an OpenGL backend *could* look like.
+  #     The opengl backend is currently incomplete.
+  # There are two backends for OpenGL:
+  #     - opengl_embed: you can put that inside your existing OpenGL
+  #       application. You can then call draw() in your render loop
+  #       to draw the plots on top of your application.
+  #     - opengl: this backend will create it's own window and make
+  #       plots there.
+  # Qt: If you're using Qt, opengl_embed allows you to create plots in your
+  #     application. See https://doc.qt.io/qt-5/qtgui-index.html
+  # Web: If you're creating plots for the web, you can use emscripten to
+  #     create efficient plots. See:
+  #     https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html
+  # We are continuously making plot categories compatible with these backends.
+  # For each category, we need to adapt the axes objects to feed this backend
+  #     with polygons and colors instead of commands.
+  # Feeding these commands is not a problem at all. The data is all prepared
+  #     in the axes objects. Unlike an gnuplot backend, we don't have to convert
+  #     this data to strings and do not have to worry about an external syntax.
+  # The biggest challenge is to actually create backends that can
+  #     draw these polygons we feed them.
+  # We discuss some of these difficulties in the documentation
+  #     and the backend_interface.h.
+  # The biggest pro of the OpenGL backend is that it is very efficient.
+  #     Everything is happening on the GPU.
+  # The biggest con of the OpenGL backend is that it cannot open a window
+  #     in another thread. All it can do is get in the middle of the render
+  #     loop and draw the plot.
+  find_package(OpenGL)
 
-    # https://github.com/Dav1dde/glad
-    find_package(glad CONFIG)
-    if (NOT glad_FOUND)
-        find_package(GLAD QUIET)
-    endif()
-    if (NOT glad_FOUND AND NOT GLAD_FOUND)
-        # Use CPM only if not found, to avoid ODR violations
-        # find_package(GLAD REQUIRE) would suffice if it worked well
-        FetchContent_Declare(glad GIT_REPOSITORY https://github.com/Dav1dde/glad.git GIT_TAG v0.1.36)
-        FetchContent_MakeAvailable(glad)
-    endif()
-    if(TARGET glad AND NOT TARGET glad::glad)
-        # Alias glad to glad::glad
-        add_library(glad::glad ALIAS glad)
-        list(APPEND TARGETS glad)
-    endif()
-    if(NOT TARGET glad::glad)
-        # FindGLAD does not usually create a target, so we create an interface target
-        add_library(glad::glad INTERFACE)
-        target_include_directories(glad::glad INTERFACE ${GLAD_INCLUDE_PATH})
-        target_link_libraries(glad::glad INTERFACE ${GLAD_LIBRARIES})
-    endif()
+  add_subdirectory(glad/)
 
-    # https://github.com/glfw/glfw
-    find_package(glfw3 QUIET)
-    if ((NOT glfw3_FOUND AND NOT GLFW3_FOUND) OR NOT TARGET glfw)
-        # Use CPM only if not found, to avoid ODR violations
-        # find_package(glfw3 REQUIRE) would suffice if it worked well
-        FetchContent_Declare(glfw3 GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG 3.3.8)
-        FetchContent_MakeAvailable(glfw3)
-    endif()
+  # https://github.com/glfw/glfw
+  find_package(glfw3 QUIET)
+  if ((NOT glfw3_FOUND AND NOT GLFW3_FOUND) OR NOT TARGET glfw)
+    # Use CPM only if not found, to avoid ODR violations
+    # find_package(glfw3 REQUIRE) would suffice if it worked well
+    FetchContent_Declare(glfw3 GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG 3.3.8)
+    FetchContent_MakeAvailable(glfw3)
+  endif()
 
-    add_library(matplot_opengl
+  add_library(matplot_opengl
             backend/opengl_embed.h
             backend/opengl_embed.cpp
             backend/opengl.h
             backend/opengl.cpp
             )
-    target_link_libraries(matplot_opengl PUBLIC matplot glad::glad glfw ${CMAKE_DL_LIBS})
 
-    list(APPEND TARGETS matplot_opengl)
+  target_include_directories(matplot_opengl
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include/)
+
+  target_link_libraries(matplot_opengl PUBLIC matplot glad glfw ${CMAKE_DL_LIBS})
+
+  list(APPEND TARGETS matplot_opengl)
 endif()
 
 #######################################################
 ### Installer                                       ###
 #######################################################
 if (MATPLOTPP_BUILD_INSTALLER)
-    # Install targets
-    install(TARGETS ${TARGETS}
+  # Install targets
+  install(TARGETS ${TARGETS}
             EXPORT Matplot++Targets
-	    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             )
 
-    # Install headers
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  # Install headers
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             FILES_MATCHING PATTERN "*.h"
             )
 
-    # Install cmake script
-    install(EXPORT Matplot++Targets
+  # Install cmake script
+  install(EXPORT Matplot++Targets
             FILE Matplot++Targets.cmake
             NAMESPACE Matplot++::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Matplot++
