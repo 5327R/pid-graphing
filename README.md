@@ -8,4 +8,5 @@ cd pid-graphing/build
 cmake ..
 cd ..
 cmake --build build
+./build/app
 ```
